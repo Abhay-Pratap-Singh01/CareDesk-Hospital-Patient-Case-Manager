@@ -27,7 +27,7 @@ Use `/admin/` to manage staff accounts and review records.
 
 ## Deploy to Render
 
-Create a PostgreSQL database and a **Web Service** for this repository. Configure:
+Create a **Web Service** for this repository. Configure:
 
 - **Build Command:** `./build.sh`
 - **Start Command:** `gunicorn config.wsgi:application`
@@ -41,9 +41,9 @@ Set these environment variables for the Web Service:
 | `SECRET_KEY` | A newly generated secret; for example, run `python -c "import secrets; print(secrets.token_urlsafe(50))"` locally and paste its output into Render. |
 | `DEBUG` | `False` |
 | `ALLOWED_HOSTS` | The service hostname, such as `your-service.onrender.com` (comma-separate additional hostnames). |
-| `DATABASE_URL` | The PostgreSQL **Internal Database URL** from the Render database settings. Keep it private. |
+| `DATABASE_URL` | Optional. Set this to a PostgreSQL **Internal Database URL** if using PostgreSQL; when omitted, CareDesk uses SQLite. Keep the URL private. |
 
-Render's `RENDER_EXTERNAL_HOSTNAME` is also added to allowed hosts automatically. The build script installs the requirements, runs Django checks and `collectstatic`, and applies normal migrations with `migrate --noinput`. It does not reset or delete database data.
+Render's `RENDER_EXTERNAL_HOSTNAME` is also added to allowed hosts automatically. The build script installs the requirements, runs Django checks and `collectstatic`, and applies normal migrations with `migrate --noinput` to the configured database. SQLite on Render uses the service's ephemeral filesystem: records may be lost after restarts or redeploys. Login and patient workflows still require an initialized, available database, and this demo does not provide durable storage without PostgreSQL.
 
 After the first successful deployment, open the service's Shell in Render and run:
 

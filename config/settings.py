@@ -87,8 +87,6 @@ if DATABASE_URL:
             ssl_require=not DEBUG,
         )
     }
-elif not DEBUG:
-    raise ImproperlyConfigured("Set the DATABASE_URL environment variable in production.")
 else:
     DATABASES = {
         "default": {
