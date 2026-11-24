@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ case.patient_name }}{% endblock %}
+{% block content %}
+<section class="page narrow-page">
+  <a class="back-link" href="{% url 'dashboard' %}">← Patient overview</a>
+  <div class="detail-heading">
+    <div><div class="eyebrow">{{ case.patient_id }} · PATIENT CASE</div><h1>{{ case.patient_name }}</h1><p class="muted">Admitted {{ case.admission_date|date:"F j, Y" }}</p></div>
+    <div class="detail-actions"><span class="badge {% if case.status == 'admitted' %}badge-green{% else %}badge-gray{% endif %}">{{ case.get_status_display }}</span><a class="button secondary" href="{% url 'patient_edit' case.pk %}">Edit details</a></div>
+  </div>
+  <div class="detail-grid">
+    <section class="panel detail-panel"><h2>Patient information</h2><div class="detail-list">
+      <div><small>Phone</small><strong>{{ case.phone }}</strong></div><div><small>Date of birth</small><strong>{{ case.date_of_birth|date:"M j, Y"|default:"Not provided" }}</strong></div>
+      <div><small>Gender</small><strong>{{ case.get_gender_display }}</strong></div><div><small>Emergency contact</small><strong>{{ case.emergency_contact|default:"Not provided" }}</strong></div>
+      <div><small>Emergency phone</small><strong>{{ case.emergency_phone|default:"Not provided" }}</strong></div><div><small>Attending doctor</small><strong>{{ case.attending_doctor|default:"Not assigned" }}</strong></div>
+    </div></section>
+    <section class="panel detail-panel"><h2>Admission & placement</h2><div class="detail-list">
+      <div><small>Diagnosis / reason</small><strong>{{ case.diagnosis }}</strong></div><div><small>Ward</small><strong>{{ case.ward }}</strong></div>
+      <div><small>Room</small><strong>{{ case.room_number }}</strong></div><div><small>Bed</small><strong>{{ case.bed_number }}</strong></div>
+    </div></section>
+    <section class="panel detail-panel"><h2>Payment summary</h2><div class="detail-list">
+      <div><small>Payment type</small><strong>{{ case.get_payment_type_display }}</strong></div><div><small>Estimated bill</small><strong>₹{{ case.estimated_bill|floatformat:2 }}</strong></div>
+      <div><small>Amount paid</small><strong>₹{{ case.amount_paid|floatformat:2 }}</strong></div><div><small>Balance due</small><strong class="balance">₹{{ case.balance_due|floatformat:2 }}</strong></div>
+      {% if case.insurance_provider %}<div><small>Insurance provider</small><strong>{{ case.insurance_provider }}</strong></div>{% endif %}
+      {% if case.insurance_policy_number %}<div><small>Policy number</small><strong>{{ case.insurance_policy_number }}</strong></div>{% endif %}
+    </div></section>
+    {% if case.notes %}<section class="panel detail-panel"><h2>Additional notes</h2><p class="notes-text">{{ case.notes|linebreaksbr }}</p></section>{% endif %}
+  </div>
+  {% if case.status == "admitted" %}<form method="post" action="{% url 'patient_discharge' case.pk %}" class="discharge-form">{% csrf_token %}<p>Ready to close this admission?</p><button class="button danger" type="submit">Mark as discharged</button></form>{% endif %}
+</section>
+{% endblock %}

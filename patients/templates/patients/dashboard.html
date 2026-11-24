@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Patient overview{% endblock %}
+{% block content %}
+<section class="page">
+  <div class="page-heading">
+    <div><div class="eyebrow">HOSPITAL OPERATIONS</div><h1>Patient overview</h1><p class="muted">A clear view of admissions and bed assignments.</p></div>
+    <a class="button primary" href="{% url 'patient_create' %}"><span class="button-plus">＋</span> New admission</a>
+  </div>
+  <div class="stats-grid">
+    <article class="stat-card"><div class="stat-top"><span>Currently admitted</span><span class="stat-icon mint">✚</span></div><strong>{{ active_count }}</strong><small>Patients in care</small></article>
+    <article class="stat-card"><div class="stat-top"><span>Discharged</span><span class="stat-icon violet">↗</span></div><strong>{{ discharged_count }}</strong><small>Cases completed</small></article>
+    <article class="stat-card"><div class="stat-top"><span>Estimated billing</span><span class="stat-icon amber">₹</span></div><strong>₹{{ billing_total|floatformat:2 }}</strong><small>For active admissions</small></article>
+  </div>
+  <section class="panel">
+    <div class="panel-heading"><div><h2>Patient cases</h2><p class="muted">Search and review admission records.</p></div></div>
+    <form class="toolbar" method="get">
+      <div class="search-wrap"><span>⌕</span><input type="search" name="q" value="{{ query }}" placeholder="Search name, ID, room or diagnosis"></div>
+      <select name="status" aria-label="Filter by status">
+        <option value="admitted" {% if status_filter == 'admitted' %}selected{% endif %}>Currently admitted</option>
+        <option value="discharged" {% if status_filter == 'discharged' %}selected{% endif %}>Discharged</option>
+        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All cases</option>
+      </select>
+      <button class="button secondary" type="submit">Apply</button>
+    </form>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>PATIENT</th><th>WARD / ROOM / BED</th><th>DIAGNOSIS</th><th>ADMITTED</th><th>PAYMENT</th><th>STATUS</th><th></th></tr></thead>
+        <tbody>
+          {% for case in cases %}
+          <tr>
+            <td><a class="patient-link" href="{% url 'patient_detail' case.pk %}">{{ case.patient_name }}</a><small>{{ case.patient_id }} · {{ case.phone }}</small></td>
+            <td>{{ case.ward }}<small>Room {{ case.room_number }} · Bed {{ case.bed_number }}</small></td>
+            <td>{{ case.diagnosis }}</td>
+            <td>{{ case.admission_date|date:"M j, Y" }}</td>
+            <td><span class="payment-type">{{ case.get_payment_type_display }}</span><small>₹{{ case.balance_due|floatformat:2 }} due</small></td>
+            <td><span class="badge {% if case.status == 'admitted' %}badge-green{% else %}badge-gray{% endif %}">{{ case.get_status_display }}</span></td>
+            <td><a class="row-arrow" href="{% url 'patient_detail' case.pk %}" aria-label="View {{ case.patient_name }}">→</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7"><div class="empty-state"><span>⌕</span><strong>No patient cases found</strong><small>Try another search or add a new admission.</small></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">Showing {{ cases|length }} patient case{{ cases|length|pluralize }}</div>
+  </section>
+</section>
+{% endblock %}

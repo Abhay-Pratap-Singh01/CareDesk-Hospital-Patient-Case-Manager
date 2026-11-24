@@ -1,0 +1,37 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}CareDesk{% endblock %} · CareDesk</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  {% if user.is_authenticated %}
+  <aside class="sidebar">
+    <a class="brand" href="{% url 'dashboard' %}">
+      <span class="brand-mark">+</span><span>Care<span class="brand-light">Desk</span></span>
+    </a>
+    <div class="side-label">WORKSPACE</div>
+    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+      <span class="nav-icon">▦</span> Patient overview
+    </a>
+    <a class="nav-link {% if request.resolver_match.url_name == 'patient_create' %}active{% endif %}" href="{% url 'patient_create' %}">
+      <span class="nav-icon">＋</span> New admission
+    </a>
+    <div class="sidebar-bottom">
+      <div class="user-card"><div class="avatar">{{ user.username|first|upper }}</div><div><strong>{{ user.get_full_name|default:user.username }}</strong><small>Hospital staff</small></div></div>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="signout" type="submit">↗ &nbsp; Sign out</button></form>
+    </div>
+  </aside>
+  {% endif %}
+  <main class="{% if user.is_authenticated %}main-content{% else %}auth-content{% endif %}">
+    {% if user.is_authenticated %}
+    <header class="topbar"><span>Patient care management</span><span class="secure-label"><span class="secure-dot"></span> Secure workspace</span></header>
+    {% endif %}
+    {% if messages %}<div class="messages">{% for message in messages %}<div class="alert {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

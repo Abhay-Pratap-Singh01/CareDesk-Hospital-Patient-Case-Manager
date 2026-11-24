@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Edit patient{% else %}New admission{% endif %}{% endblock %}
+{% block content %}
+<section class="page narrow-page">
+  <a class="back-link" href="{% if is_edit %}{% url 'patient_detail' case.pk %}{% else %}{% url 'dashboard' %}{% endif %}">← Back</a>
+  <div class="page-heading form-heading"><div><div class="eyebrow">PATIENT INTAKE</div><h1>{% if is_edit %}Update patient case{% else %}New admission{% endif %}</h1><p class="muted">Enter the patient's details, placement and payment information.</p></div></div>
+  <form method="post" class="panel case-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert error">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-section"><div class="section-title"><span class="section-number">01</span><div><h2>Patient details</h2><p>Basic identification and contact information</p></div></div>
+      <div class="fields-grid">
+        {% for field in form %}
+        {% if field.name == "patient_name" or field.name == "date_of_birth" or field.name == "gender" or field.name == "phone" or field.name == "emergency_contact" or field.name == "emergency_phone" %}
+        <div class="field {% if field.name == 'patient_name' %}field-wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required">*</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    <div class="form-section"><div class="section-title"><span class="section-number">02</span><div><h2>Admission & placement</h2><p>Care details and assigned bed</p></div></div>
+      <div class="fields-grid">
+        {% for field in form %}
+        {% if field.name == "diagnosis" or field.name == "attending_doctor" or field.name == "ward" or field.name == "room_number" or field.name == "bed_number" or field.name == "admission_date" %}
+        <div class="field {% if field.name == 'diagnosis' %}field-wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required">*</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    <div class="form-section"><div class="section-title"><span class="section-number">03</span><div><h2>Payment details</h2><p>Payment method, estimate and insurance (if applicable)</p></div></div>
+      <div class="fields-grid">
+        {% for field in form %}
+        {% if field.name == "payment_type" or field.name == "estimated_bill" or field.name == "amount_paid" or field.name == "insurance_provider" or field.name == "insurance_policy_number" %}
+        <div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required">*</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    <div class="form-section"><div class="section-title"><span class="section-number">04</span><div><h2>Additional notes</h2><p>Optional information for the care team</p></div></div>
+      <div class="field"><label for="{{ form.notes.id_for_label }}">Notes</label>{{ form.notes }}{% for error in form.notes.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+    </div>
+    <div class="form-actions"><a class="button secondary" href="{% if is_edit %}{% url 'patient_detail' case.pk %}{% else %}{% url 'dashboard' %}{% endif %}">Cancel</a><button class="button primary" type="submit">{% if is_edit %}Save changes{% else %}Create patient case{% endif %} <span>→</span></button></div>
+  </form>
+</section>
+{% endblock %}
