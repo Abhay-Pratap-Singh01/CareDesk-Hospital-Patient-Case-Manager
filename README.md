@@ -6,15 +6,15 @@ See `project_report.pdf` for the college-project overview and submission documen
 
 ## Requirements
 
-- Python 3.10 or later
-- Django (installed from `requirements.txt`)
+- Python 3.12 (the selected version is recorded in `.python-version`)
+- Dependencies installed from `requirements.txt`
 
 ## Run locally on Windows
 
 From the project directory:
 
 ```powershell
-py -m venv .venv
+py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 python manage.py migrate
@@ -24,6 +24,34 @@ python manage.py runserver
 
 Open `http://127.0.0.1:8000/` and sign in using the staff account you created.
 Use `/admin/` to manage staff accounts and review records.
+
+## Deploy to Render
+
+Create a PostgreSQL database and a **Web Service** for this repository. Configure:
+
+- **Build Command:** `./build.sh`
+- **Start Command:** `gunicorn config.wsgi:application`
+
+Gunicorn reads `gunicorn.conf.py` automatically; it binds the service to Render's `PORT` on `0.0.0.0`.
+
+Set these environment variables for the Web Service:
+
+| Variable | Value |
+| --- | --- |
+| `SECRET_KEY` | A newly generated secret; for example, run `python -c "import secrets; print(secrets.token_urlsafe(50))"` locally and paste its output into Render. |
+| `DEBUG` | `False` |
+| `ALLOWED_HOSTS` | The service hostname, such as `your-service.onrender.com` (comma-separate additional hostnames). |
+| `DATABASE_URL` | The PostgreSQL **Internal Database URL** from the Render database settings. Keep it private. |
+
+Render's `RENDER_EXTERNAL_HOSTNAME` is also added to allowed hosts automatically. The build script installs the requirements, runs Django checks and `collectstatic`, and applies normal migrations with `migrate --noinput`. It does not reset or delete database data.
+
+After the first successful deployment, open the service's Shell in Render and run:
+
+```sh
+python manage.py createsuperuser
+```
+
+Use the resulting account to sign in. Patient pages remain login-protected; do not make patient records public.
 
 ## Included
 
@@ -35,6 +63,6 @@ Use `/admin/` to manage staff accounts and review records.
 - Search, status filters, case editing and discharge workflow
 - Responsive dashboard and case forms
 
-## Before using with real patient information
+## Demonstration-project safety
 
-This is a local development starter, not a production-ready clinical records platform. Before any real deployment, configure a strong `DJANGO_SECRET_KEY`, set `DJANGO_DEBUG=false`, set `DJANGO_ALLOWED_HOSTS`, enable HTTPS, implement backups and access auditing, and have your organization review applicable privacy, security, and medical-record requirements. Do not enter real patient information into an unreviewed development installation.
+CareDesk is a demonstration project, not a system ready for real hospital or clinical use. A Render deployment does not provide the privacy, auditing, backup, access-control, or regulatory safeguards required for real patient records. Do not enter real patient information.
