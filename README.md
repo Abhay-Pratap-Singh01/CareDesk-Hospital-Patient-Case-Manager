@@ -41,9 +41,12 @@ Set these environment variables for the Web Service:
 | `SECRET_KEY` | A newly generated secret; for example, run `python -c "import secrets; print(secrets.token_urlsafe(50))"` locally and paste its output into Render. |
 | `DEBUG` | `False` |
 | `ALLOWED_HOSTS` | The service hostname, such as `your-service.onrender.com` (comma-separate additional hostnames). |
+| `DEMO_MODE` | Optional. Set to `True` only for a disposable presentation demo; it is disabled by default. |
 | `DATABASE_URL` | Optional. Set this to a PostgreSQL **Internal Database URL** if using PostgreSQL; when omitted, CareDesk uses SQLite. Keep the URL private. |
 
 Render's `RENDER_EXTERNAL_HOSTNAME` is also added to allowed hosts automatically. The build script installs the requirements, runs Django checks and `collectstatic`, and applies normal migrations with `migrate --noinput` to the configured database. SQLite on Render uses the service's ephemeral filesystem: records may be lost after restarts or redeploys. Login and patient workflows still require an initialized, available database, and this demo does not provide durable storage without PostgreSQL.
+
+When `DEMO_MODE=True`, any non-blank username and password are accepted without creating a user; a signed cookie keeps the demo session between requests without database-backed authentication. This is an intentional authentication bypass for presentation only, not secure authentication. Do not use it with real patient information; set `DEMO_MODE=False` or remove the variable to restore normal database-backed login.
 
 After the first successful deployment, open the service's Shell in Render and run:
 
@@ -65,4 +68,4 @@ Use the resulting account to sign in. Patient pages remain login-protected; do n
 
 ## Demonstration-project safety
 
-CareDesk is a demonstration project, not a system ready for real hospital or clinical use. A Render deployment does not provide the privacy, auditing, backup, access-control, or regulatory safeguards required for real patient records. Do not enter real patient information.
+CareDesk is a demonstration project, not a system ready for real hospital or clinical use. Demo authentication is not secure. A Render deployment does not provide the privacy, auditing, backup, access-control, or regulatory safeguards required for real patient records. Do not enter real patient information.

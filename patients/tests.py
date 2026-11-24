@@ -2,10 +2,77 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
+from config.demo_auth import DEMO_SESSION_KEY
+
 from .models import PatientCase
+
+
+class DemoAuthenticationTests(TestCase):
+    @override_settings(
+        DEMO_MODE=True,
+        SESSION_ENGINE="django.contrib.sessions.backends.signed_cookies",
+    )
+    def test_any_nonempty_credentials_persist_until_logout(self):
+        credentials = [
+            ("admin", "1234"),
+            ("doctor", "doctor123"),
+            ("anything", "anything"),
+        ]
+
+        for username, password in credentials:
+            with self.subTest(username=username):
+                client = Client()
+                response = client.post(
+                    reverse("login"),
+                    {"username": username, "password": password},
+                )
+                self.assertRedirects(response, reverse("dashboard"))
+                self.assertEqual(client.session[DEMO_SESSION_KEY], username)
+                self.assertEqual(client.get(reverse("dashboard")).status_code, 200)
+                self.assertEqual(client.get(reverse("dashboard")).status_code, 200)
+                self.assertEqual(User.objects.count(), 0)
+
+                logout_response = client.post(reverse("logout"))
+                self.assertRedirects(logout_response, reverse("login"))
+                self.assertNotIn(DEMO_SESSION_KEY, client.session)
+                self.assertEqual(client.get(reverse("dashboard")).status_code, 302)
+
+    @override_settings(
+        DEMO_MODE=True,
+        SESSION_ENGINE="django.contrib.sessions.backends.signed_cookies",
+    )
+    def test_demo_login_rejects_empty_credentials(self):
+        for credentials in (
+            {"username": "", "password": "secret"},
+            {"username": "demo", "password": ""},
+            {"username": "   ", "password": "   "},
+        ):
+            with self.subTest(credentials=credentials):
+                client = Client()
+                response = client.post(reverse("login"), credentials)
+                self.assertEqual(response.status_code, 200)
+                self.assertTrue(response.context["form"].errors)
+                self.assertNotIn(DEMO_SESSION_KEY, client.session)
+
+    @override_settings(DEMO_MODE=False)
+    def test_database_authentication_remains_enabled_when_demo_mode_is_off(self):
+        rejected_response = self.client.post(
+            reverse("login"),
+            {"username": "not-a-user", "password": "any-password"},
+        )
+        self.assertEqual(rejected_response.status_code, 200)
+
+        User.objects.create_user(username="staff", password="staff-password")
+
+        response = self.client.post(
+            reverse("login"),
+            {"username": "staff", "password": "staff-password"},
+        )
+
+        self.assertRedirects(response, reverse("dashboard"))
 
 
 class PatientCaseWorkflowTests(TestCase):
